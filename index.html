@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>APIs Públicas - Duas Telas</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f3f4f6;
+    margin: 20px;
+    color: #111;
+  }
+  .container {
+    max-width: 700px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  }
+  input, button {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+  }
+  button {
+    background-color: #00e2a1;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  button:hover {
+    background-color: #00b485;
+  }
+  img {
+    max-width: 100%;
+    border-radius: 10px;
+    margin-top: 10px;
+  }
+  section {
+    margin-top: 30px;
+    border-top: 1px solid #ccc;
+    padding-top: 20px;
+  }
+  a {
+    color: #0077cc;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  /* Estilo das abas */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .tab-btn {
+    padding: 10px 20px;
+    margin: 0 8px;
+    background: #ddd;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    color: #333;
+    transition: background-color 0.3s;
+  }
+  .tab-btn.active {
+    background: #00e2a1;
+    color: white;
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>APIs Públicas - Duas Telas</h1>
+
+    <div class="tabs">
+      <button id="tab1-btn" class="tab-btn active" onclick="showTab(1)">GitHub + Conselho</button>
+      <button id="tab2-btn" class="tab-btn" onclick="showTab(2)">YouTube + NASA</button>
+    </div>
+
+    <!-- Tela 1 -->
+    <div id="tab1" class="tab-content active">
+      <section>
+        <h2>GitHub</h2>
+        <input id="githubUser" placeholder="Usuário GitHub" />
+        <button onclick="buscarGitHub()">Buscar</button>
+        <div id="githubResult"></div>
+      </section>
+
+      <section>
+        <h2>Conselho Aleatório</h2>
+        <button onclick="buscarConselho()">Gerar Conselho</button>
+        <p id="adviceResult"></p>
+      </section>
+    </div>
+
+    <!-- Tela 2 -->
+    <div id="tab2" class="tab-content">
+      <section>
+        <h2>Buscar vídeos no YouTube (demo)</h2>
+        <input id="youtubeQuery" placeholder="Termo para buscar vídeos" />
+        <button onclick="buscarYoutube()">Buscar</button>
+        <div id="youtubeResult"></div>
+        <p style="font-size: 12px; color: #888;">* YouTube API precisa de chave e backend para funcionar 100%.</p>
+      </section>
+
+      <section>
+        <h2>Imagem do Dia NASA</h2>
+        <button onclick="buscarNasa()">Carregar Imagem</button>
+        <div id="nasaResult"></div>
+      </section>
+    </div>
+  </div>
+
+<script>
+  // Função para trocar de tela
+  function showTab(num) {
+    // botoes
+    document.getElementById('tab1-btn').classList.toggle('active', num === 1);
+    document.getElementById('tab2-btn').classList.toggle('active', num === 2);
+    // telas
+    document.getElementById('tab1').classList.toggle('active', num === 1);
+    document.getElementById('tab2').classList.toggle('active', num === 2);
+  }
+
+  // GitHub
+  async function buscarGitHub() {
+    const user = document.getElementById('githubUser').value.trim();
+    const res = document.getElementById('githubResult');
+    if (!user) {
+      res.innerHTML = '<p style="color:red">Digite um usuário GitHub</p>';
+      return;
+    }
+    res.innerHTML = 'Carregando...';
+    try {
+      const response = await fetch(`https://api.github.com/users/${user}`);
+      if (!response.ok) throw new Error('Usuário não encontrado');
+      const data = await response.json();
+      res.innerHTML = `
+        <img src="${data.avatar_url}" width="100" />
+        <p><strong>${data.name || data.login}</strong></p>
+        <p>${data.bio || 'Sem bio disponível.'}</p>
+        <a href="${data.html_url}" target="_blank" rel="noopener noreferrer">Ver perfil no GitHub</a>
+      `;
+    } catch (err) {
+      res.innerHTML = `<p style="color:red">${err.message}</p>`;
+    }
+  }
+
+  // Advice Slip
+  async function buscarConselho() {
+    const el = document.getElementById('adviceResult');
+    el.textContent = 'Carregando...';
+    try {
+      const response = await fetch('https://api.adviceslip.com/advice');
+      const data = await response.json();
+      el.textContent = `"${data.slip.advice}"`;
+    } catch {
+      el.textContent = 'Erro ao buscar conselho.';
+    }
+  }
+
+  // NASA APOD
+  async function buscarNasa() {
+    const el = document.getElementById('nasaResult');
+    el.innerHTML = 'Carregando...';
+    try {
+      const response = await fetch('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY');
+      const data = await response.json();
+      el.innerHTML = `
+        <h3>${data.title}</h3>
+        <img src="${data.url}" alt="Imagem NASA" />
+        <p>${data.explanation}</p>
+      `;
+    } catch {
+      el.innerHTML = 'Erro ao carregar imagem da NASA.';
+    }
+  }
+
+  // YouTube Search (Demo: só mensagem explicativa)
+  async function buscarYoutube() {
+    const query = document.getElementById('youtubeQuery').value.trim();
+    const el = document.getElementById('youtubeResult');
+    if (!query) {
+      el.innerHTML = '<p style="color:red">Digite um termo para buscar vídeos</p>';
+      return;
+    }
+    el.innerHTML = 'Carregando...';
+    el.innerHTML = `<p style="color: red;">YouTube API precisa de chave e backend para funcionar corretamente.</p>`;
+  }
+</script>
+</body>
+</html>
